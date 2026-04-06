@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CleanTrust Touch™ YZ3500 — Carpet Cleaners Warehouse</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@200;300;400;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-deep: #030810;
+    --bg-chamber: #0a1628;
+    --cyan: #00e5ff;
+    --cyan-bright: #40efff;
+    --cyan-mid: #0ab4cc;
+    --ccw-blue: #0073CE;
+    --ccw-blue-light: #339be0;
+    --ccw-blue-glow: rgba(0, 115, 206, 0.5);
+    --amber: #ffab00;
+    --text-primary: #f0f3f8;
+    --text-secondary: #b8c4d6;
+    --text-tertiary: #8a9bba;
+    --text-label: #6ecfdf;
+    --grid-line: rgba(0, 229, 255, 0.05);
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ─── SCROLL ─── */
+  .scroll-container { height: 100vh; overflow-y: auto; scroll-snap-type: y mandatory; }
+  section {
+    min-height: 100vh; scroll-snap-align: start;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; overflow: hidden; padding: 80px 24px 40px;
+  }
+
+  /* ─── PARTICLES ─── */
+  .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .particle {
+    position: absolute; border-radius: 50%; background: var(--cyan);
+    opacity: 0; animation: fp linear infinite;
+  }
+  @keyframes fp {
+    0% { opacity: 0; transform: translateY(100vh) scale(0.3); }
+    15% { opacity: 0.5; } 85% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+  }
+
+  /* ─── GRID ─── */
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* ─── NAV ─── */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 16px 32px; backdrop-filter: blur(10px); background: rgba(3, 8, 16, 0.8); border-bottom: 1px solid var(--ccw-blue-glow); display: flex; justify-content: space-between; align-items: center; }
+  .nav-logo { display: flex; align-items: center; gap: 12px; }
+  .nav-logo-mark { width: 32px; height: 32px; border: 2px solid var(--ccw-blue); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 10px; color: var(--ccw-blue); }
+  .nav-logo-text { font-weight: 600; font-size: 13px; color: var(--text-primary); font-family: 'Inter', sans-serif; }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-link { color: var(--text-secondary); text-decoration: none; font-size: 13px; transition: color 0.2s; cursor: pointer; }
+  .nav-link:hover { color: var(--cyan); }
+  .nav-cta { padding: 8px 20px; background: linear-gradient(135deg, var(--ccw-blue), var(--ccw-blue-light)); border-radius: 4px; color: white; text-decoration: none; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+  .nav-cta:hover { box-shadow: 0 0 20px var(--ccw-blue-glow); }
+
+  /* ─── HERO ─── */
+  .hero { position: relative; z-index: 10; text-align: center; max-width: 900px; }
+  .hero h1 { font-size: 72px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  .hero-subtitle { font-size: 28px; color: var(--cyan); font-weight: 300; margin-bottom: 40px; letter-spacing: 0.5px; }
+  .hero-description { font-size: 16px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .hero-specs {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 40px 0;
+    padding: 24px; background: rgba(0, 115, 206, 0.08); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 8px;
+  }
+  .spec { text-align: left; padding: 12px 0; border-bottom: 1px solid rgba(0, 229, 255, 0.05); }
+  .spec:last-child { border: none; }
+  .spec-label { font-size: 11px; color: var(--text-label); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .spec-value { font-size: 18px; color: var(--cyan); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+  /* ─── DEVICE SECTION ─── */
+  .device-container { position: relative; width: 100%; max-width: 500px; height: 500px; margin: 60px auto; }
+  .device-exploded { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .device-part {
+    position: absolute; opacity: 0.9; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .device-part.active { transform: scale(1.1); }
+
+  /* ─── PROCESS SECTION ─── */
+  .process-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-top: 60px; max-width: 900px; }
+  .process-card {
+    padding: 32px; background: rgba(0, 115, 206, 0.08); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 8px;
+    transition: all 0.3s; position: relative;
+  }
+  .process-card:hover { background: rgba(0, 115, 206, 0.12); border-color: rgba(0, 229, 255, 0.3); box-shadow: 0 0 30px rgba(0, 115, 206, 0.2); }
+  .process-number { font-size: 48px; color: var(--ccw-blue); font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-bottom: 12px; }
+  .process-title { font-size: 18px; color: var(--cyan); font-weight: 600; margin-bottom: 12px; }
+  .process-description { font-size: 14px; color: var(--text-tertiary); line-height: 1.6; }
+
+  /* ─── FOOTER ─── */
+  .footer { position: relative; z-index: 10; text-align: center; padding: 32px; background: rgba(3, 8, 16, 0.9); border-top: 1px solid var(--ccw-blue-glow); }
+  .footer-text { font-size: 14px; color: var(--text-secondary); margin: 12px 0; }
+  .footer-price { font-size: 32px; color: var(--ccw-blue); font-weight: 700; font-family: 'JetBrains Mono', monospace; margin: 20px 0; }
+  .cta-button {
+    display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, var(--ccw-blue), var(--ccw-blue-light));
+    color: white; text-decoration: none; font-weight: 600; border-radius: 4px; font-size: 14px; border: none;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--ccw-blue-glow);
+  }
+  .cta-button:hover { box-shadow: 0 0 40px var(--ccw-blue-glow); transform: translateY(-2px); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+  @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 10px rgba(0, 229, 255, 0.5); } 50% { box-shadow: 0 0 30px rgba(0, 229, 255, 0.8); } }
+  @keyframes scan { 0% { opacity: 0; transform: scale(0.8); } 50% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 48px; }
+    .hero-subtitle { font-size: 20px; }
+    .nav-links { display: none; }
+    .process-grid { grid-template-columns: 1fr; }
+    .hero-specs { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+<div class="grid-overlay"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-mark">CCW</div>
+    <div class="nav-logo-text">Carpet Cleaners Warehouse</div>
+  </div>
+  <div class="nav-links">
+    <a href="#specs" class="nav-link">Specifications</a>
+    <a href="#process" class="nav-link">How It Works</a>
+    <button class="cta-button">Shop Now</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>CleanTrust Touch™</h1>
+  <p class="hero-subtitle">YZ3500 Luminometer</p>
+  <p class="hero-description">
+    See what the naked eye cannot. The CleanTrust Touch™ YZ3500 uses ATP bioluminescence technology to measure surface and water contamination in seconds. Built for specialised cleaning professionals who need measurable proof.
+  </p>
+  <div class="hero-specs">
+    <div class="spec">
+      <div class="spec-label">RLU Range</div>
+      <div class="spec-value">0—32,000</div>
+    </div>
+    <div class="spec">
+      <div class="spec-label">Detection Time</div>
+      <div class="spec-value">~10s</div>
+    </div>
+    <div class="spec">
+      <div class="spec-label">ATP Sensitivity</div>
+      <div class="spec-value">1×10⁻¹⁶ mol</div>
+    </div>
+    <div class="spec">
+      <div class="spec-label">Test Capacity</div>
+      <div class="spec-value">3,000/charge</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEVICE EXPLODED VIEW -->
+<section class="device-container">
+  <div class="device-exploded">
+    <svg viewBox="0 0 400 600" style="width: 100%; height: 100%; filter: drop-shadow(0 0 40px rgba(0, 229, 255, 0.3));">
+      <!-- Device body -->
+      <rect x="100" y="200" width="200" height="280" fill="none" stroke="#00e5ff" stroke-width="2" rx="12" opacity="0.8"/>
+
+      <!-- Display -->
+      <rect x="130" y="220" width="140" height="120" fill="none" stroke="#00e5ff" stroke-width="1.5" rx="4" opacity="0.6"/>
+      <line x1="145" y1="235" x2="255" y2="235" stroke="#00e5ff" stroke-width="1" opacity="0.4"/>
+      <line x1="145" y1="250" x2="255" y2="250" stroke="#00e5ff" stroke-width="1" opacity="0.4"/>
+      <line x1="145" y1="310" x2="220" y2="310" stroke="#00e5ff" stroke-width="1" opacity="0.4"/>
+
+      <!-- Sample chamber -->
+      <rect x="155" y="370" width="90" height="60" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.7"/>
+
+      <!-- Connector lines -->
+      <line x1="200" y1="180" x2="200" y2="200" stroke="rgba(0, 229, 255, 0.3)" stroke-width="1" stroke-dasharray="5,5"/>
+      <line x1="200" y1="480" x2="200" y2="520" stroke="rgba(0, 229, 255, 0.3)" stroke-width="1" stroke-dasharray="5,5"/>
+
+      <!-- Annotation labels -->
+      <text x="250" y="280" font-family="'JetBrains Mono', monospace" font-size="12" fill="#00e5ff" opacity="0.6">Touchscreen Display</text>
+      <text x="250" y="400" font-family="'JetBrains Mono', monospace" font-size="12" fill="#00e5ff" opacity="0.6">Sample Chamber</text>
+    </svg>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="process">
+  <h2 style="font-size: 48px; color: var(--text-primary); margin-bottom: 60px; text-align: center;">How It Works</h2>
+  <div class="process-grid">
+    <div class="process-card">
+      <div class="process-number">01</div>
+      <div class="process-title">Swab</div>
+      <div class="process-description">Collect a sample from the surface or water using a sterile ATP testing swab.</div>
+    </div>
+    <div class="process-card">
+      <div class="process-number">02</div>
+      <div class="process-title">Insert</div>
+      <div class="process-description">Place the swab into the device's sample chamber for automated analysis.</div>
+    </div>
+    <div class="process-card">
+      <div class="process-number">03</div>
+      <div class="process-title">Measure</div>
+      <div class="process-description">ATP bioluminescence reaction measured by precision photodiode in ~10 seconds.</div>
+    </div>
+    <div class="process-card">
+      <div class="process-number">04</div>
+      <div class="process-title">Result</div>
+      <div class="process-description">Quantified RLU reading displayed instantly. Store results on-device or sync via WiFi.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SPECS -->
+<section id="specs" style="text-align: center;">
+  <h2 style="font-size: 48px; color: var(--text-primary); margin-bottom: 60px;">Technical Specifications</h2>
+  <div style="max-width: 600px; margin: 0 auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr style="border-bottom: 1px solid rgba(0, 229, 255, 0.1);">
+        <td style="padding: 12px; text-align: left; color: var(--text-label); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">Measurement Range</td>
+        <td style="padding: 12px; text-align: right; color: var(--cyan); font-weight: 600;">0–32,000 RLU</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0, 229, 255, 0.1);">
+        <td style="padding: 12px; text-align: left; color: var(--text-label); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">Detection Time</td>
+        <td style="padding: 12px; text-align: right; color: var(--cyan); font-weight: 600;">~10 seconds</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0, 229, 255, 0.1);">
+        <td style="padding: 12px; text-align: left; color: var(--text-label); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">ATP Sensitivity</td>
+        <td style="padding: 12px; text-align: right; color: var(--cyan); font-weight: 600;">1 × 10⁻¹⁶ mol</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0, 229, 255, 0.1);">
+        <td style="padding: 12px; text-align: left; color: var(--text-label); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">Data Storage</td>
+        <td style="padding: 12px; text-align: right; color: var(--cyan); font-weight: 600;">10 million records</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0, 229, 255, 0.1);">
+        <td style="padding: 12px; text-align: left; color: var(--text-label); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">Connectivity</td>
+        <td style="padding: 12px; text-align: right; color: var(--cyan); font-weight: 600;">WiFi, Bluetooth, USB-C</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px; text-align: left; color: var(--text-label); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">Battery Life</td>
+        <td style="padding: 12px; text-align: right; color: var(--cyan); font-weight: 600;">3,000 tests/charge</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <h3 style="font-size: 24px; color: var(--cyan); margin-bottom: 12px;">Ready to Measure What Matters?</h3>
+  <p class="footer-text">See the invisible. Prove the clean.</p>
+  <div class="footer-price">AUD $5,291.49</div>
+  <button class="cta-button">Shop Now at CCW Online</button>
+  <p class="footer-text" style="margin-top: 32px;">
+    <strong>Carpet Cleaners Warehouse</strong><br>
+    <a href="https://ccwonline.com.au/products/cleantrust-touch-yz3500-luminometer" style="color: var(--ccw-blue); text-decoration: none;">View Product</a>
+  </p>
+</footer>
+
+<script>
+  // Particle generation
+  function createParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      const size = Math.random() * 3 + 1;
+      const duration = Math.random() * 8 + 12;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDuration = duration + 's';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      container.appendChild(particle);
+    }
+  }
+
+  // Nav scroll interaction
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('.nav');
+    if (window.scrollY > 50) {
+      nav.style.background = 'rgba(3, 8, 16, 0.95)';
+      nav.style.boxShadow = '0 0 20px rgba(0, 115, 206, 0.1)';
+    } else {
+      nav.style.background = 'rgba(3, 8, 16, 0.8)';
+      nav.style.boxShadow = 'none';
+    }
+  });
+
+  // CTA tracking
+  document.querySelectorAll('.cta-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.location.href = 'https://ccwonline.com.au/products/cleantrust-touch-yz3500-luminometer';
+    });
+  });
+
+  createParticles();
+</script>
+
+</body>
+</html>
