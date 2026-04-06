@@ -1,0 +1,23 @@
+```json
+{
+  "projectPurpose": "A Python CLI pipeline that extracts brand identity from any URL (via HTML parsing + Gemini AI enrichment) and auto-generates a full marketing campaign: cinematic webpage, social ads (story/feed/landscape), and product reveal video. Built initially around a specific client (Carpet Cleaners Warehouse / CleanTrust YZ3500) but refactored into a generic URL-to-campaign system.",
+  "targetUsers": [
+    "Marketing agencies running brand campaigns for B2B/B2C clients",
+    "Freelance creative technologists needing rapid campaign scaffolding",
+    "E-commerce operators wanting automated campaign asset generation",
+    "Cleaning/restoration industry professionals (original CCW client use case)"
+  ],
+  "businessLogic": "Core rules: (1) Brand fidelity is inviolable — extract exact hex colors/fonts from client site, never approximate. (2) Product photo integrity — NEVER AI-generate a client's product image; use real supplied assets, generate backgrounds separately and composite programmatically. (3) Pipeline is resumable — skip_existing=True in config.py skips already-generated assets. (4) Two-pass brand extraction: HTML structural parse first (colors, fonts, meta, CTAs, prices), then Gemini AI enrichment to synthesize tone/style/value-props from raw signals — keeping hallucination low by grounding AI in real page data. (5) All data flows through strongly-typed BrandKit dataclass (schemas/brand_kit.py) — changing a field ripples through extraction, prompts, web build, and ads. (6) Cost ceiling ~$0.30/run across Gemini image + Veo video APIs.",
+  "currentState": "alpha",
+  "keyInsights": [
+    "DUAL PIPELINE PROBLEM: There are two parallel orchestrators — orchestrate-pipeline.py (legacy, CleanTrust-specific, Kling video API) and pipeline.py (generic, Veo API, modular) — with overlapping functionality and no clear deprecation path. This is the #1 architectural debt item.",
+    "DEAD CODE IN BRAND EXTRACTOR: modules/brand_extractor.py contains broken regex in _extract_meta() and _extract_content() — raw f-string multiline patterns with unescaped newlines (lines ~96-115) that will fail at runtime. The regex r'<meta[^>]+name=[\"\\']?{name}[\"\\']?[^>]+content=[\"\\'][^\"\\']+ is an incomplete/corrupted string.",
+    "CONFIG SPLIT: modules/config.py handles Veo/Gemini only; env-local-template.env references Kling, Shopify, Claude, and Cloudinary — none of which are wired into the Python pipeline's PipelineConfig dataclass. The JS orchestrator (orchestrate-pipeline.js) consumes these but is effectively abandoned.",
+    "HARDCODED CLIENT ARTIFACTS IN GENERIC REPO: CleanTrust-YZ3500-Cinematic.html, CleanTrust-YZ3500-Design-Philosophy.md, CleanTrust-YZ3500-Social-Copy-Pack.md, CleanTrust-YZ3500-Social-Post.jsx, Kling-Video-Prompt-Pack.md, and orchestrate-pipeline.js are all client-specific deliverables left in what's now presented as a generic pipeline repo — conflating portfolio artifact with reusable tool.",
+    "MISSING requirements.txt ENTRIES: orchestrate-pipeline.js requires dotenv, node-fetch, jsonwebtoken (not in package.json — no package.json exists). Python pipeline only declares Pillow and requests in requirements.txt but both are optional/unused in the current code path — urllib.request handles all HTTP natively.",
+    "REVIEW DASHBOARD IS FULLY CLIENT-SIDE ONLY: review-dashboard.html cannot actually trigger pipeline runs — the 'Copy Pipeline Command' button copies a shell command string to clipboard but has no server connection. The pipeline status bar is hardcoded HTML (not live state). Useful for manual review workflows, misleading if presented as live monitoring.",
+    "TYPE SAFETY GAP: BrandKit.from_dict() in schemas/brand_kit.py silently drops unknown keys rather than raising — deserialization from externally-edited brand-kit.json files will fail silently, producing kits with default values where fields were renamed or missing.",
+    "VIDEO GENERATOR REDIRECT HANDLING: modules/video_generator.py has a manual redirect fallback in _download_with_redirect() that fires when response body < 1024 bytes and contains JSON. This heuristic is fragile — a valid short video file or a Veo error response with a long body would both be mishandled."
+  ]
+}
+```
