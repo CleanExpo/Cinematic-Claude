@@ -1,0 +1,132 @@
+```json
+{
+  "scores": {
+    "completeness": 7,
+    "correctness": 6,
+    "codeQuality": 6,
+    "documentation": 8
+  },
+  "issues": [
+    {
+      "severity": "high",
+      "file": "modules/brand_extractor.py",
+      "description": "Regex string literals contain raw newlines in character classes. Lines like r'font-family\\s*:\\s*([^;}{\\n]+)' and the logo_src block have broken regex that will cause re.error at runtime. The character class [^;}{\\n] contains a literal newline in the source, not an escape sequence."
+    },
+    {
+      "severity": "high",
+      "file": "modules/brand_extractor.py",
+      "description": "_extract_meta() and _extract_content() use regex patterns with unclosed parentheses across continuation lines (e.g. pat1 = rf'<meta[^>]+name=...'). These are syntactically broken multiline f-string regexes that will raise SyntaxError or re.error at runtime."
+    },
+    {
+      "severity": "high",
+      "file": "modules/video_generator.py",
+      "description": "_download_with_redirect(): conn = http.client.HTTPSConnection(parsed.hostname) — parsed.hostname can be None if URL is malformed, causing TypeError. No guard present. Also the fallback manual redirect logic duplicates code already in the main try block (DRY violation + fragility)."
+    },
+    {
+      "severity": "high",
+      "file": "orchestrate-pipeline.py",
+      "description": "Duplicate implementation of PipelineConfig, PipelineTracer, TraceEntry, gemini_generate_image, and veo_generate_video — all already exist in modules/config.py, modules/tracer.py, modules/asset_generator.py, modules/video_generator.py. This file is a 300-line copy-paste that will diverge and has already diverged (e.g. redirect logic differs between the two veo implementations)."
+    },
+    {
+      "severity": "high",
+      "file": "modules/web_builder.py",
+      "description": "_google_fonts_tag() references urllib.parse.quote via a lambda before importing urllib.parse. The import statement appears after the lambda definition (line ~60 vs line ~70). This causes NameError at runtime when google_fonts_url is empty and the function falls through to the families-building path."
+    },
+    {
+      "severity": "high",
+      "file": "env-local-template.env",
+      "description": "File committed to repo with placeholder API key patterns that could be confused for real keys (sk-ant-xxx, AIzaSyx..., shpat_xxx). The .gitignore excludes .env and .env.local but NOT env-local-template.env — if a developer fills this in and commits it, real keys leak."
+    },
+    {
+      "severity": "medium",
+      "file": "modules/brand_extractor.py",
+      "description": "_extract_content() logo regex uses multiple ) + continuation pattern fragments that are syntactically invalid Python. The actual regex for logo_src will silently fail and always return empty string. No test catches this."
+    },
+    {
+      "severity": "medium",
+      "file": "modules/ad_compositor.py",
+      "description": "_hex_rgb() and _darken() are duplicated verbatim from modules/web_builder.py. DRY violation across two production modules — any colour-math bug must be fixed in two places. Should be extracted to modules/color_utils.py."
+    },
+    {
+      "severity": "medium",
+      "file": "modules/asset_generator.py",
+      "description": "No retry logic. A single transient HTTP error (timeout, 503) raises and propagates immediately, aborting the entire pipeline step. The tracer correctly logs 'error' but callers in pipeline.py only catch Exception for the background step — product keyframe and video failures are unhandled and will abort the run."
+    },
+    {
+      "severity": "medium",
+      "file": "modules/video_generator.py",
+      "description": "print() used for progress output (line: print(f'    ⟳ Generating video... {pct}%', end='\\r')) instead of tracer. This breaks structured observability — progress is invisible in the trace log and pollutes stdout when --verbose is off."
+    },
+    {
+      "severity": "medium",
+      "file": "modules/tracer.py",
+      "description": "PipelineTracer.log() accepts **kwargs and passes them directly to TraceEntry(). If an unknown key is passed (e.g. a typo), Python raises TypeError: __init__() got an unexpected keyword argument with no context about which step caused it. No kwarg validation."
+    },
+    {
+      "severity": "medium",
+      "file": "pipeline.py",
+      "description": "run_product_video() returns str | None but callers in run_full_campaign() do not check the return value. If video generation fails, the None is silently ignored — the run summary prints 'video: None' with no user-visible warning beyond the earlier print statement."
+    },
+    {
+      "severity": "medium",
+      "file": "modules/config.py",
+      "description": "PipelineConfig.validate() does not check that image_model or extract_model are non-empty strings. If GEMINI_API_KEY is set but image_model is overridden to an empty string (e.g. via CLI), the API call will construct a URL with an empty model segment and return a 404 with no clear error message."
+    },
+    {
+      "severity": "medium",
+      "file": "CleanTrust-YZ3500-Social-Post.jsx",
+      "description": "Connector line positioning uses absolute CSS calculated from hardcoded pixel offsets (left: calc(50% + 32px + ${index * 104}px)) that assume a fixed 1080px container width. These will misalign in any responsive or non-1080px render context. The component is labelled as a 1080×1080 ad but has no enforcement of that constraint."
+    },
+    {
+      "severity": "medium",
+      "file": "orchestrate-pipeline.js",
+      "description": "generateKlingJWT() implements JWT signing manually using crypto.createHmac rather than a vetted JWT library. The nbf/exp claims are correct but the base64url encoding of the header/payload skips JSON key ordering normalisation — some JWT validators reject non-canonical JSON. Should use the jsonwebtoken package already listed as a prerequisite."
+    },
+    {
+      "severity": "low",
+      "file": "modules/prompt_engine.py",
+      "description": "social_ad_copy() has a dead import: 'from schemas.brand_kit import BrandProduct as BP' inside the function body with comment 'avoid circular at module level' — but BP is never used inside the function. The parameter is typed as plain 'product' with no annotation. Remove or fix."
+    },
+    {
+      "severity": "low",
+      "file": "modules/prompt_engine.py",
+      "description": "Bottom of file has 'try: from typing import Optional / except ImportError: pass' — Optional is never used in this module and typing has been available since Python 3.5. Dead code."
+    },
+    {
+      "severity": "low",
+      "file": "schemas/brand_kit.py",
+      "description": "BrandKit.from_dict() constructs BrandColors, BrandTypography etc. with **{k: v for k, v in data.items() if k in __dataclass_fields__} — this silently drops unknown fields. If a new field is added to BrandKit but not to from_dict(), it will be silently zeroed on load. No version/schema migration path."
+    },
+    {
+      "severity": "low",
+      "file": "CleanTrust-YZ3500-Social-Copy-Pack.md",
+      "description": "Instagram and LinkedIn product URLs are duplicated with doubled path segments: ccwonline.com.au/products/cleantrust-touch-yz3500-luminometer/products/cleantrust-touch-yz3500-luminometer — these are broken links in production-ready copy."
+    },
+    {
+      "severity": "low",
+      "file": "pipeline.py",
+      "description": "_resolve_kit() calls kit.summary() before kit is returned (in the brand-kit load path) but summary() references kit.copy.business_name — if the JSON is malformed and from_dict() returns a partial kit, this will produce a misleading empty summary with no error, not a clear failure."
+    }
+  ],
+  "missingTests": [
+    "Unit tests for _extract_colors(), _extract_fonts(), _extract_meta(), _extract_content() in brand_extractor.py — these regex parsers are the highest-complexity, most failure-prone code in the project",
+    "Unit tests for BrandKit.from_dict() / from_json() round-trip serialisation — schema changes will silently break deserialization",
+    "Integration test for the full pipeline with a mocked HTTP backend (no live API calls) — currently no way to verify end-to-end flow without burning API credits",
+    "Unit tests for _hex_rgb(), _darken(), _lighten() colour utilities — duplicated across modules with no test coverage",
+    "Test for PipelineConfig.validate() covering all invalid configurations",
+    "Test for video_generator.generate() polling loop — timeout path and error path both untested",
+    "Test for ad_compositor.composite_all() output file structure and HTML validity",
+    "Test for web_builder.build() with and without assets dict, verifying HTML output contains expected brand tokens",
+    "Test for prompt_engine functions with edge-case BrandKit inputs (empty products list, missing style fields, non-ASCII business names)"
+  ],
+  "securityConcerns": [
+    "env-local-template.env is tracked in git and not excluded by .gitignore — if populated with real keys and committed, all API credentials (Anthropic, Gemini, Kling, Shopify admin token) are exposed in repo history permanently",
+    "modules/brand_extractor.py _fetch(): User-supplied URL is passed directly to urllib.request.urlopen() with no scheme validation beyond a startswith check. A file:// or ftp:// URL would be fetched, enabling SSRF-class local file reads",
+    "modules/brand_extractor.py: HTML from arbitrary external URLs is passed to Gemini as a prompt without sanitisation. A malicious site could embed prompt-injection payloads in its HTML that manipulate the AI extraction output (e.g. override business_name, inject malicious URLs into logo_url or hero_image_url)",
+    "orchestrate-pipeline.js generateKlingJWT(): secret key is used directly from process.env without length/format validation. An empty string KLING_SECRET_KEY produces a valid-looking but insecure HMAC signature — the error surfaces only as an API 401, not a config error",
+    "modules/video_generator.py _download_with_redirect(): video bytes are written to output_path without any MIME type validation. A malicious or misconfigured API response could write arbitrary bytes (including executable content) to the output directory",
+    "modules/web_builder.py build(): kit.url is injected directly into href attributes in the HTML output without URL encoding or scheme validation. A kit.url of 'javascript:alert(1)' would produce XSS in the generated HTML if served by a web server",
+    "modules/brand_extractor.py _ai_enrich(): Gemini API key is appended as a query parameter in the URL (key={config.gemini_api_key}). This pattern exposes the key in server access logs, proxy logs, and browser history if the URL is ever exposed"
+  ]
+}
+```

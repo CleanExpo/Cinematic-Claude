@@ -1,0 +1,102 @@
+```json
+{
+  "zteLevel": 2,
+  "zteScore": 31,
+  "leveragePoints": [
+    {
+      "id": 1,
+      "name": "Spec Quality",
+      "score": 4,
+      "rationale": "BrandKit dataclass in schemas/brand_kit.py is a well-typed contract with 7 nested dataclasses. Prompt engine in modules/prompt_engine.py has explicit style directives (_TONE, _LIGHTING, _GRADE, _MOTION, _PHOTO_STYLE dicts). Kling-Video-Prompt-Pack.md has shot-level specs with negative prompts, duration, aspect ratio. Design-Philosophy.md encodes cinematic intent. Missing: formal acceptance criteria, output validation schema."
+    },
+    {
+      "id": 2,
+      "name": "Context Precision",
+      "score": 3,
+      "rationale": "Two-pass brand extraction in modules/brand_extractor.py (HTML parse + Gemini enrichment) passes structured signals JSON to AI. prompt_engine._style_block() synthesises BrandKit fields into reusable style directives. Gap: no RAG or vector store — each run re-extracts from scratch. Brand kit confidence field (0-1) exists but is not used to gate generation quality. Context window management absent."
+    },
+    {
+      "id": 3,
+      "name": "Model Selection",
+      "score": 3,
+      "rationale": "config.py declares image_model, extract_model, video_model, video_model_fallback. env-local-template.env lists Gemini 2.5 Flash, Imagen 3, Kling v1.5 Pro, Veo 3.0 Fast. Fallback from veo-3.0 to veo-2.0 is declared but not implemented with actual retry logic in video_generator.py. No cost-aware routing (e.g. use fast model for low-confidence extractions, expensive model for final render). JS orchestrator (orchestrate-pipeline.js) and Python pipeline use different model stacks — fragmentation."
+    },
+    {
+      "id": 4,
+      "name": "Tool Availability",
+      "score": 3,
+      "rationale": "Gemini image gen, Veo video gen, HTML brand extraction, ad compositor, web builder all implemented. review-dashboard.html provides visual review tooling with drag-drop, sync playback, prompt editor. Missing: no Shopify API integration (SHOPIFY_YZ3500_VARIANT_ID empty in env template), no image compositing tool (Pillow listed in requirements.txt but unused in any module), no post-production stitching tool for multi-shot sequences, no automated screenshot renderer for HTML ads."
+    },
+    {
+      "id": 5,
+      "name": "Feedback Loops",
+      "score": 2,
+      "rationale": "PipelineTracer in modules/tracer.py logs step/provider/status/duration_ms/prompt_hash/output_path per step. review-dashboard.html loads trace JSON and shows side-by-side video comparison. Gap: no automated quality scoring of outputs. No retry-on-quality-fail. No loop from review decision back into pipeline re-run — 'Select as Final' button calls alert() only (review-dashboard.html line ~390). Feedback is manual, not programmatic."
+    },
+    {
+      "id": 6,
+      "name": "Error Recovery",
+      "score": 3,
+      "rationale": "pipeline.py wraps each phase in try/except with graceful degradation (background gen failure falls back to CSS gradient). video_generator.py handles redirect edge case in _download_with_redirect(). skip_existing flag in config.py enables resumable runs. Gap: no automatic retry with exponential backoff. video_model_fallback declared in config.py but veo_generate_video() in both orchestrate-pipeline.py and modules/video_generator.py never references it. No circuit breaker pattern."
+    },
+    {
+      "id": 7,
+      "name": "Session Continuity",
+      "score": 2,
+      "rationale": "--brand-kit PATH flag allows loading existing brand-kit.json to skip re-extraction. skip_existing=True in config skips already-generated assets. run_dir uses domain+timestamp for isolation. Gap: no checkpoint/resume for mid-pipeline failures (if video generation fails after image generation, re-run re-generates images). No persistent state store. JS and Python orchestrators write to separate output paths (./output vs ./runs) — no shared state."
+    },
+    {
+      "id": 8,
+      "name": "Quality Gating",
+      "score": 1,
+      "rationale": "No automated quality gates exist. brand_extractor.py generates a confidence score (0-1) but pipeline.py never checks it before proceeding to generation. No image quality validation (resolution, artifact detection). No video frame count or duration validation after download. review-dashboard.html is manual-only. Production Critical Rule ('NEVER AI-generate product photo') is documented in README.md but not enforced in code — product_start_frame() in prompt_engine.py generates a product image description regardless."
+    },
+    {
+      "id": 9,
+      "name": "Cost Efficiency",
+      "score": 3,
+      "rationale": "skip_existing=True avoids redundant API calls on re-run. TraceEntry has cost_estimate field but it is never populated in any module. README documents ~$0.30/run estimate but no runtime cost tracking. No batching of image generation requests. JS orchestrator runs shots sequentially with no parallelisation. No model tiering (always uses premium models regardless of asset importance). Dry-run mode exists to validate before spending."
+    },
+    {
+      "id": 10,
+      "name": "Trigger Automation",
+      "score": 2,
+      "rationale": "CLI trigger via python3 pipeline.py --url <URL>. Node.js orchestrator via node orchestrate-pipeline.js. No event-driven triggers (webhook, file watcher, CI/CD integration). No scheduled runs. No Shopify product-update webhook integration despite Shopify config in env template. .gitignore excludes output/ but no CI pipeline defined. Manual execution only."
+    },
+    {
+      "id": 11,
+      "name": "Knowledge Retention",
+      "score": 2,
+      "rationale": "brand-kit.json persisted per run provides domain knowledge for re-use via --brand-kit flag. Trace JSON provides run history. Design-Philosophy.md and Social-Copy-Pack.md encode campaign knowledge as static documents. Gap: no vector database or retrieval system for cross-run learning. No prompt versioning system. Successful prompts not automatically saved for future reference. Each run is isolated — no accumulation of brand understanding across runs."
+    },
+    {
+      "id": 12,
+      "name": "Workflow Standardization",
+      "score": 3,
+      "rationale": "TASKS dict in pipeline.py standardises task names and descriptions. Stateless module pattern (each module accepts kit/config/tracer) enforces consistent interface. BrandKit is the universal data contract across all modules. Gap: two parallel orchestrators exist (pipeline.py and orchestrate-pipeline.py and orchestrate-pipeline.js) with divergent task definitions and output paths — three entry points for same functionality. No standard for adding new tasks documented in code (only in README). Ad formats hardcoded in ad_compositor.py _AD_FORMATS dict rather than config-driven."
+    }
+  ],
+  "productionGaps": [
+    "Quality gate absent: brand_extractor confidence score (schemas/brand_kit.py:confidence field) never checked before generation proceeds in pipeline.py — low-confidence extractions silently produce poor assets",
+    "video_model_fallback declared in modules/config.py line ~18 but never referenced in modules/video_generator.py — Veo failure has no automatic fallback to veo-2.0",
+    "Product image integrity rule ('NEVER AI-generate product photo') documented in README but not enforced — modules/prompt_engine.py:product_start_frame() generates AI product image regardless",
+    "TraceEntry.cost_estimate field in modules/tracer.py is never populated by any module — cost tracking is documentation-only",
+    "Three divergent entry points (pipeline.py, orchestrate-pipeline.py, orchestrate-pipeline.js) with different output directories (./runs vs ./output), model stacks, and task definitions — no single source of truth",
+    "Shopify integration stubbed in env-local-template.env (SHOPIFY_YZ3500_VARIANT_ID empty) with no implementation — direct checkout URLs hardcoded as static strings",
+    "review-dashboard.html selectWinner() calls alert() only — no feedback loop back to pipeline re-run or output management",
+    "HTML ad files require manual Chrome screenshot at exact pixel dimensions — no automated rendering pipeline for production-ready ad images",
+    "modules/brand_extractor.py regex patterns for logo extraction (lines ~120-130) contain syntax errors in raw strings (unescaped quotes in f-string regex) — untested edge case",
+    "No input sanitisation on --url argument in pipeline.py before passing to urllib.request — SSRF risk on internal network URLs"
+  ],
+  "loadRisks": [
+    "Veo video polling in modules/video_generator.py uses synchronous sleep loop (time.sleep) — single video blocks entire process for up to 300s; full-campaign with multiple products could block for 15+ minutes",
+    "modules/brand_extractor.py fetches arbitrary URLs with a 20s timeout and no size limit — a large page (10MB+ HTML) loads entirely into memory before parsing",
+    "orchestrate-pipeline.js runs all 6 Kling shots sequentially — ~35s of Pro video at 5s poll intervals = minimum 7+ minutes sequential wall time with no parallelisation",
+    "urllib.request has no connection pooling — each of the 4+ API calls in a full-campaign run opens a new TCP connection to generativelanguage.googleapis.com",
+    "PipelineTracer accumulates all TraceEntry objects in memory (modules/tracer.py:self.entries list) — long-running batch jobs across many URLs would exhaust memory",
+    "review-dashboard.html loads video files via URL.createObjectURL with no size limit or format validation — large MP4 files (100MB+) load entirely into browser memory",
+    "Brand extraction HTML regex patterns in modules/brand_extractor.py run multiple re.findall passes over the full HTML string — O(n*m) for large pages with many CSS rules",
+    "modules/video_generator.py downloads entire video into memory (video_bytes = r.read()) before writing to disk — 500MB+ video files would OOM on low-memory systems"
+  ]
+}
+```

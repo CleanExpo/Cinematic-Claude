@@ -1,0 +1,39 @@
+```json
+{
+  "totalFiles": 24,
+  "languages": {
+    "Python": 3180,
+    "HTML": 2100,
+    "JavaScript": 520,
+    "JSX": 310,
+    "Markdown": 620,
+    "JSON": 0,
+    "ENV": 40
+  },
+  "topFiles": [
+    "modules/web_builder.py",
+    "modules/brand_extractor.py",
+    "pipeline.py",
+    "orchestrate-pipeline.py",
+    "orchestrate-pipeline.js",
+    "CleanTrust-YZ3500-Cinematic.html",
+    "review-dashboard.html",
+    "modules/ad_compositor.py",
+    "modules/video_generator.py",
+    "schemas/brand_kit.py"
+  ],
+  "frameworks": [
+    "React (JSX)",
+    "Gemini API (generativelanguage.googleapis.com)",
+    "Veo API (predictLongRunning)",
+    "Kling AI API",
+    "Google Fonts",
+    "Tailwind CSS (via className in JSX)"
+  ],
+  "entryPoints": [
+    "pipeline.py",
+    "orchestrate-pipeline.py",
+    "orchestrate-pipeline.js"
+  ]
+}
+```
