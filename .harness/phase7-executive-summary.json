@@ -1,0 +1,74 @@
+```json
+{
+  "headline": "A modular Python pipeline that extracts brand identity from any URL and generates production-ready campaign assets (HTML pages, social ads, product videos) via Gemini and Veo APIs.",
+  "currentState": "The repo is a working v3 pipeline with a clean layered architecture: BrandKit schema as the typed contract, stateless generation modules (asset_generator, video_generator, web_builder, ad_compositor), a two-pass brand extractor (HTML parse + Gemini enrichment), and structured observability via PipelineTracer. A companion JavaScript orchestrator (orchestrate-pipeline.js) targets Kling AI video generation as an alternative to Veo. There is a bespoke review dashboard (review-dashboard.html) and a production-quality CleanTrust YZ3500 campaign (HTML, JSX social post, social copy pack, video prompt pack) that serves as the reference implementation. The codebase is functional but has no automated tests, no CI, and ships with several structural issues in the regex-heavy brand extractor that will cause silent failures on non-trivial sites.",
+  "strengths": [
+    "Clean typed data contract: BrandKit dataclass with nested sub-schemas is the single source of truth — every module reads from it, nothing is hardcoded downstream.",
+    "Stateless module design: asset_generator, video_generator, web_builder, ad_compositor are independently callable with no shared mutable state, making them composable and testable in isolation.",
+    "Two-pass brand extraction is architecturally sound: HTML parsing keeps hallucination low by grounding AI enrichment in real page data.",
+    "PipelineTracer gives per-step structured observability with prompt hashes, duration, cost, and output paths — rare for a project at this scale.",
+    "Full-campaign output is production-ready vanilla HTML/CSS/JS with responsive design, scroll-snap sections, IntersectionObserver animations, and no framework lock-in.",
+    "CLI is well-designed: --dry-run, --brand-kit (skip extraction), --task granularity, and --verbose are all present and correctly wired.",
+    "CleanTrust YZ3500 campaign artifacts (HTML, JSX, social copy, video prompts, design philosophy) demonstrate real client delivery quality — this is a credible portfolio piece."
+  ],
+  "weaknesses": [
+    "brand_extractor.py regex patterns are fragile: the f-string continuation bug in _extract_meta (line ~88, unclosed f-string across line break) and similar patterns in _extract_content will cause SyntaxErrors or silent empty-string matches on many real sites.",
+    "Zero test coverage: no unit tests, no integration tests, no fixtures. The regex parsers and BrandKit assembly are the highest-risk code with no safety net.",
+    "orchestrate-pipeline.js and orchestrate-pipeline.py are parallel implementations of the same pipeline logic with divergent model assumptions (Kling vs Veo) — duplicated orchestration with no shared contract.",
+    "requirements.txt lists only Pillow and requests, but Pillow is described as 'optional' in pipeline.py and requests is never imported in the Python modules (all HTTP uses urllib). The requirements file is misleading.",
+    "No retry logic in asset_generator.py or video_generator.py: a single transient API failure aborts the entire run despite the tracer recording the error.",
+    "web_builder.py imports urllib.parse inside _google_fonts_tag() function body (line ~130) — will raise NameError if called before the local import is reached, and the import is duplicated at module level via the broader function.",
+    "env-local-template.env references SHOPIFY_* and CLOUDINARY_* variables not used anywhere in the Python codebase — dead config that misleads setup.",
+    "No input sanitisation on URL or brand kit JSON path: arbitrary file read and external URL fetch with no validation."
+  ],
+  "risks": [
+    "API cost bleed: at ~$0.30/run with no rate limiting, no quota enforcement, and no dry-run gate on the full-campaign path, a misconfigured loop or automated trigger could generate hundreds of dollars in API spend silently.",
+    "Gemini model name drift: image_model defaults to 'gemini-2.5-flash-image' and video_model to 'veo-3.0-fast-generate-001' — both are experimental identifiers that Google deprecates without notice, breaking the pipeline with opaque 404s.",
+    "brand_extractor regex failures produce empty BrandKit fields silently: downstream modules fall back to defaults (#0073CE, sans-serif) without alerting the user, resulting in generic output that appears successful.",
+    "CleanTrust YZ3500 assets in the repo root are client-specific content committed alongside generic framework code — if this repo goes public, client brand data and pricing are exposed.",
+    "The review-dashboard.html stores no state and has no auth — if hosted publicly it exposes the prompt editor and pipeline command generation to anyone with the URL.",
+    "video_generator.py _download_with_redirect() falls back to http.client with no SSL verification on the redirect target — potential MITM on video download."
+  ],
+  "opportunities": [
+    "Add a pytest suite with mocked API responses for brand_extractor, prompt_engine, and web_builder: this is the highest-leverage quality investment — these modules are already stateless and pure, making them trivially testable.",
+    "Unify the JS and Python orchestrators: define a pipeline spec JSON (task graph, model selection, asset references) that both runtimes consume, eliminating the duplicated logic and making Kling/Veo a swappable backend.",
+    "Implement exponential backoff retry in asset_generator and video_generator with configurable max_retries: converts most transient API failures from aborted runs to self-healing ones.",
+    "Add a brand kit diff/cache layer: hash the input URL + HTML content and skip extraction if the brand kit is fresh (< N hours old) — reduces cost and latency on iterative campaign refinement.",
+    "Expose the pipeline as a FastAPI service: the stateless module design is already service-ready; a thin HTTP wrapper would enable webhook-triggered campaign generation from Shopify product events.",
+    "The CleanTrust YZ3500 campaign demonstrates a repeatable pattern: package this as a documented vertical template (cleaning/industrial equipment) with a companion brand kit fixture for offline testing and demos.",
+    "Add a --budget flag to PipelineConfig that dry-runs cost estimation before any API call and prompts for confirmation if the run exceeds the threshold."
+  ],
+  "nextActions": [
+    {
+      "action": "Fix the SyntaxError-risk regex patterns in modules/brand_extractor.py — specifically the unclosed f-string continuations in _extract_meta (~line 88) and _extract_content (~line 118). Replace with raw string patterns and add a smoke test against a static HTML fixture.",
+      "why": "These are silent correctness bugs that will produce empty brand kits on most real sites. Everything downstream — prompts, ads, video — degrades silently. Highest risk, lowest fix effort.",
+      "effort": "S"
+    },
+    {
+      "action": "Fix requirements.txt: remove Pillow (optional, not imported), remove requests (not used), add a comment block explaining the stdlib-only HTTP design. Add a dev-requirements.txt with pytest and responses (HTTP mock).",
+      "why": "The current requirements file will mislead every new contributor and CI setup. Takes 10 minutes to fix.",
+      "effort": "S"
+    },
+    {
+      "action": "Write pytest unit tests for brand_extractor._extract_colors(), _extract_fonts(), _extract_meta(), _extract_content() using a static HTML fixture of a real CCW product page. Target 80% branch coverage on these four functions.",
+      "why": "These are the highest-risk, highest-complexity functions with no current safety net. Tests here catch the regex bugs and prevent regressions on every future extraction improvement.",
+      "effort": "M"
+    },
+    {
+      "action": "Add retry logic to modules/asset_generator.py and modules/video_generator.py: exponential backoff (1s, 2s, 4s) with max_retries=3, catching urllib.error.URLError and HTTP 5xx responses. Log each retry attempt via the tracer.",
+      "why": "Gemini and Veo APIs return transient 5xx errors, especially under load. A single retry converts most failures from aborted runs to successful ones at zero additional cost.",
+      "effort": "S"
+    },
+    {
+      "action": "Move CleanTrust YZ3500 client assets (CleanTrust-YZ3500-Cinematic.html, CleanTrust-YZ3500-Design-Philosophy.md, CleanTrust-YZ3500-Social-Copy-Pack.md, CleanTrust-YZ3500-Social-Post.jsx, Kling-Video-Prompt-Pack.md) to an examples/ccw-yz3500/ directory and add them to .gitignore if the repo is going public.",
+      "why": "Client brand data, pricing (AUD $5,291.49), and product specifications are committed to the repo root with no separation from the generic framework. This is a data exposure and repository organisation issue.",
+      "effort": "S"
+    },
+    {
+      "action": "Implement a FastAPI wrapper (api.py) exposing POST /extract, POST /generate/{task}, and GET /runs/{run_id}/status. Wire it to the existing stateless modules with no changes to module internals.",
+      "why": "The stateless module architecture is already service-ready. An HTTP API unlocks Shopify webhook triggers, Zapier integration, and multi-tenant use — transforming this from a CLI tool into a platform.",
+      "effort": "M"
+    }
+  ]
+}
+```
