@@ -1,0 +1,217 @@
+```json
+{
+  "sprints": [
+    {
+      "id": 1,
+      "name": "Foundation Hardening",
+      "duration": "5d",
+      "items": [
+        {
+          "title": "Fix broken regex in brand_extractor.py — malformed continuation patterns at lines with r'<meta[^>]+content=...' chained with raw string breaks (modules/brand_extractor.py ~L90-130)",
+          "size": "M",
+          "priority": "P1"
+        },
+        {
+          "title": "Fix _extract_content() logo regex — orphaned group syntax r'<img[^>]+src=...' with unclosed alternation at modules/brand_extractor.py ~L155-165",
+          "size": "S",
+          "priority": "P1"
+        },
+        {
+          "title": "Add test suite: pytest unit tests for brand_extractor._extract_colors, _extract_fonts, _extract_meta with fixture HTML files",
+          "size": "M",
+          "priority": "P1"
+        },
+        {
+          "title": "Pin all requirements.txt versions — add google-generativeai, add dev deps (pytest, ruff, mypy). Currently only Pillow>=10 and requests>=2.31 declared, but neither is imported in any module",
+          "size": "S",
+          "priority": "P1"
+        },
+        {
+          "title": "Remove dead orchestrate-pipeline.py — duplicates pipeline.py with no unique logic; causes confusion about entry point",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Add Makefile / justfile: lint, test, dry-run, full-campaign targets so CI and devs have one canonical invocation",
+          "size": "S",
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Reliability & Observability",
+      "duration": "5d",
+      "items": [
+        {
+          "title": "Add retry logic with exponential back-off to asset_generator.generate() and video_generator.generate() — currently any transient API error is fatal (modules/asset_generator.py L47, modules/video_generator.py L55)",
+          "size": "M",
+          "priority": "P1"
+        },
+        {
+          "title": "Decouple video polling into a separate thread with cancel event — current while-loop in video_generator.py L85-120 blocks the process and eats SIGINT",
+          "size": "M",
+          "priority": "P2"
+        },
+        {
+          "title": "Add cost_estimate values to all tracer.log() calls — currently the TraceEntry.cost_estimate field (tracer.py L24) is declared but never populated",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Structured JSON logging to stderr (--verbose flag) — current print() calls in PipelineTracer.log() are not machine-parseable",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Add prompt length guard in prompt_engine.py — no validation that generated prompts stay under Gemini/Veo token ceilings",
+          "size": "S",
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Brand Extraction Quality",
+      "duration": "5d",
+      "items": [
+        {
+          "title": "Replace hand-rolled HTML parser in brand_extractor.py with html.parser (stdlib) or BeautifulSoup — current regex on real-world HTML is brittle and already broken in several places",
+          "size": "L",
+          "priority": "P1"
+        },
+        {
+          "title": "Add JS-rendered page support via Playwright headless option (behind --js-render flag) — many Shopify/React sites return skeleton HTML to the current urllib fetch",
+          "size": "L",
+          "priority": "P2"
+        },
+        {
+          "title": "Add brand kit validation step after AI enrichment — check primary_color is valid hex, fonts are non-empty, products list is sane before saving brand-kit.json",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Cache raw HTML fetch per domain+day to avoid re-fetching on --brand-kit reuse workflows",
+          "size": "S",
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Multimodel Expansion",
+      "duration": "7d",
+      "items": [
+        {
+          "title": "Integrate Kling API from env-local-template.env and orchestrate-pipeline.js into Python pipeline — JWT generation, text2video, image2video, polling (currently JS-only, orphaned from main pipeline)",
+          "size": "L",
+          "priority": "P1"
+        },
+        {
+          "title": "Add Anthropic Claude as prompt-engineering agent — use claude-sonnet-4 to auto-refine prompts based on brand kit before sending to Gemini/Veo (ANTHROPIC_API_KEY already in env template)",
+          "size": "L",
+          "priority": "P2"
+        },
+        {
+          "title": "Add Shopify Storefront API integration — read live product data (name, price, images, SKU) directly into BrandProduct instead of relying on HTML scrape (SHOPIFY_STOREFRONT_TOKEN already in env template)",
+          "size": "M",
+          "priority": "P2"
+        },
+        {
+          "title": "Add Cloudinary/S3 asset hosting option — generated assets are local-only; social posting requires a public URL (config stubs exist in env-local-template.env)",
+          "size": "M",
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Ad & Web Output Quality",
+      "duration": "5d",
+      "items": [
+        {
+          "title": "Replace provider='claude' in ad_compositor.py tracer.log() calls (ad_compositor.py L120) — no Claude API is called there; this is a mislabelled local render step",
+          "size": "S",
+          "priority": "P1"
+        },
+        {
+          "title": "Add Pillow-based product compositing in ad_compositor.py — README states 'composite product programmatically' but composite_all() only generates backgrounds; no actual image compositing occurs",
+          "size": "L",
+          "priority": "P2"
+        },
+        {
+          "title": "Add Google Fonts preconnect and font-display:swap to web_builder.py output HTML — currently fonts block render (web_builder.py ~L200)",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Add social_links rendering to web_builder.py footer — BrandKit.social_links dict is populated but never rendered in the output page (web_builder.py footer section)",
+          "size": "S",
+          "priority": "P3"
+        },
+        {
+          "title": "Add review-dashboard.html trace loader for pipeline.py JSON output — dashboard already supports drag-drop trace JSON (review-dashboard.html L210) but run summary path is not printed as an actionable link",
+          "size": "S",
+          "priority": "P3"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Developer Experience & Packaging",
+      "duration": "4d",
+      "items": [
+        {
+          "title": "Add pyproject.toml with [project] metadata, ruff config, mypy config — repo has no build system declaration",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Move env-local-template.env to .env.example (conventional name) and add dotenv loading to pipeline.py so users don't need to manually export vars",
+          "size": "S",
+          "priority": "P2"
+        },
+        {
+          "title": "Add GitHub Actions CI: ruff lint + mypy + pytest on push",
+          "size": "M",
+          "priority": "P2"
+        },
+        {
+          "title": "Add CONTRIBUTING.md documenting how to add a new task, new provider, and new ad format",
+          "size": "S",
+          "priority": "P3"
+        }
+      ]
+    }
+  ],
+  "featureList": [
+    { "id": "F001", "title": "Fix broken regex chains in brand_extractor.py meta/logo parsers", "sprint": 1, "status": "planned" },
+    { "id": "F002", "title": "Pin requirements.txt with all actual runtime dependencies", "sprint": 1, "status": "planned" },
+    { "id": "F003", "title": "pytest unit test suite for extraction and schema modules", "sprint": 1, "status": "planned" },
+    { "id": "F004", "title": "Remove duplicate orchestrate-pipeline.py entry point", "sprint": 1, "status": "planned" },
+    { "id": "F005", "title": "Makefile with canonical lint/test/run targets", "sprint": 1, "status": "planned" },
+    { "id": "F006", "title": "Retry + back-off for asset_generator and video_generator API calls", "sprint": 2, "status": "planned" },
+    { "id": "F007", "title": "Non-blocking video polling with cancel support", "sprint": 2, "status": "planned" },
+    { "id": "F008", "title": "Populate TraceEntry.cost_estimate on all log() calls", "sprint": 2, "status": "planned" },
+    { "id": "F009", "title": "Machine-readable structured log output (--verbose)", "sprint": 2, "status": "planned" },
+    { "id": "F010", "title": "Prompt length validation in prompt_engine.py", "sprint": 2, "status": "planned" },
+    { "id": "F011", "title": "Replace regex HTML parser with html.parser/BeautifulSoup", "sprint": 3, "status": "planned" },
+    { "id": "F012", "title": "JS-rendered page support via Playwright (--js-render flag)", "sprint": 3, "status": "planned" },
+    { "id": "F013", "title": "Brand kit validation after AI enrichment", "sprint": 3, "status": "planned" },
+    { "id": "F014", "title": "HTML fetch cache per domain+day", "sprint": 3, "status": "planned" },
+    { "id": "F015", "title": "Kling API Python integration (JWT, text2video, image2video, poll)", "sprint": 4, "status": "planned" },
+    { "id": "F016", "title": "Claude prompt-engineering agent layer before Gemini/Veo calls", "sprint": 4, "status": "planned" },
+    { "id": "F017", "title": "Shopify Storefront API product data ingestion into BrandProduct", "sprint": 4, "status": "planned" },
+    { "id": "F018", "title": "Cloudinary/S3 asset upload and public URL generation", "sprint": 4, "status": "planned" },
+    { "id": "F019", "title": "Fix mislabelled provider='claude' in ad_compositor.py tracer calls", "sprint": 5, "status": "planned" },
+    { "id": "F020", "title": "Pillow-based product image compositing in ad_compositor.composite_all()", "sprint": 5, "status": "planned" },
+    { "id": "F021", "title": "Google Fonts preconnect + font-display:swap in web_builder.py output", "sprint": 5, "status": "planned" },
+    { "id": "F022", "title": "Render BrandKit.social_links in web_builder.py footer", "sprint": 5, "status": "planned" },
+    { "id": "F023", "title": "Print clickable trace log path from review-dashboard.html on run complete", "sprint": 5, "status": "planned" },
+    { "id": "F024", "title": "pyproject.toml with ruff + mypy configuration", "sprint": 6, "status": "planned" },
+    { "id": "F025", "title": "Rename env-local-template.env to .env.example + dotenv auto-load in pipeline.py", "sprint": 6, "status": "planned" },
+    { "id": "F026", "title": "GitHub Actions CI: lint + type-check + test on push", "sprint": 6, "status": "planned" },
+    { "id": "F027", "title": "CONTRIBUTING.md: how to add task, provider, ad format", "sprint": 6, "status": "planned" }
+  ]
+}
+```
