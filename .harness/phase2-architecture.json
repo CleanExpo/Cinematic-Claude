@@ -1,0 +1,33 @@
+```json
+{
+  "techStack": [
+    "Python 3.10+",
+    "Gemini API (gemini-2.5-flash, gemini-2.5-flash-image)",
+    "Veo API (veo-3.0-fast-generate-001)",
+    "Kling AI API (kling-v1-5, optional fallback)",
+    "Pillow>=10.0.0",
+    "requests>=2.31.0",
+    "Node.js (ESM, orchestrate-pipeline.js only)",
+    "React (CleanTrust-YZ3500-Social-Post.jsx, standalone demo)",
+    "Vanilla HTML/CSS/JS (web_builder.py, ad_compositor.py output)"
+  ],
+  "pattern": "MVC",
+  "entryPoints": [
+    "pipeline.py (primary CLI — URL-to-campaign orchestrator)",
+    "orchestrate-pipeline.py (legacy/product-specific Python CLI)",
+    "orchestrate-pipeline.js (Node.js alternative, Kling-focused)"
+  ],
+  "keyDependencies": [
+    "Pillow>=10.0.0",
+    "requests>=2.31.0",
+    "urllib.request (stdlib — all API calls)",
+    "dataclasses (stdlib — BrandKit schema)",
+    "argparse (stdlib — CLI)",
+    "Google Generative Language API (REST)",
+    "Veo API (REST, long-running operations pattern)",
+    "Kling AI API (REST + HMAC-SHA256 JWT auth)"
+  ],
+  "dataFlow": "URL → brand_extractor.py (HTML parse + Gemini enrichment) → BrandKit dataclass (schemas/brand_kit.py) → prompt_engine.py (BrandKit → prompt strings) → asset_generator.py / video_generator.py / web_builder.py / ad_compositor.py (stateless generation modules) → ./runs/<domain>-<timestamp>/ (HTML, PNG, MP4 outputs) + PipelineTracer → logs/<run-id>-trace.json",
+  "architectureNotes": "The system is a linear CLI pipeline with a typed central data contract (BrandKit) acting as the model layer — all modules are stateless functions that consume BrandKit and emit files, making them independently testable. pipeline.py acts as controller/router, dispatching to task-specific runners (run_webpage, run_social_ads, run_product_video) with no shared mutable state between modules. There is architectural drift: orchestrate-pipeline.py and orchestrate-pipeline.js are earlier product-specific implementations not integrated with the generic pipeline.py, creating three overlapping entry points with duplicated Veo/Gemini call logic (compare veo_generate_video in orchestrate-pipeline.py lines 150-230 vs modules/video_generator.py — near-identical code)."
+}
+```
